@@ -31,10 +31,10 @@ vector<vector<unsigned int>> BMPFilehandler::ReadBMP()
     int width = *(int*)&header[18];
     int height = *(int*)&header[22];
 
+    cout << "   File: " << inp_filename << endl;
+    cout << "  Width: " << width << endl;
+    cout << " Height: " << height << endl;
     cout << endl;
-    cout << "  Name: " << inp_filename << endl;
-    cout << " Width: " << width << endl;
-    cout << "Height: " << height << endl;
 
     int row_padded = (width*3 + 3) & (~3);
     
@@ -86,6 +86,8 @@ unsigned char* BMPFilehandler::ReadHeader() {
 void BMPFilehandler::WriteBMP(vector<vector<unsigned int>> data)
 {
     FILE* imageFile = fopen(outp_filename, "wb");
+
+    cout << "   File: " << outp_filename << endl;
 
     int height = 100;
     int width = 100;
