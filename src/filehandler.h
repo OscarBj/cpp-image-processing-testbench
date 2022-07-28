@@ -14,7 +14,7 @@ class BMPFilehandler {
         BMPFilehandler(char *infl, char *outfl);
         std::vector<std::vector<unsigned int>> ReadBMP();
         unsigned char* ReadHeader();
-        void WriteBMP(std::vector<std::vector<unsigned int>> data);
+        void WriteBMP(int width, int height, std::vector<std::vector<unsigned int>> data);
 };
 
 #endif

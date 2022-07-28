@@ -83,15 +83,12 @@ unsigned char* BMPFilehandler::ReadHeader() {
     return info;
 }
 
-void BMPFilehandler::WriteBMP(vector<vector<unsigned int>> data)
+void BMPFilehandler::WriteBMP(int width, int height, vector<vector<unsigned int>> data)
 {
     FILE* imageFile = fopen(outp_filename, "wb");
 
     cout << "   File: " << outp_filename << endl;
 
-    int height = 100;
-    int width = 100;
-    
     int row_padded = (width*3 + 3) & (~3);
 
     int widthInBytes = width * 8;
