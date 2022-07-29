@@ -9,6 +9,6 @@ std::vector<std::vector<unsigned int>> boxFilt(unsigned int channel, unsigned in
 
 std::vector<std::vector<unsigned int>> bufferTest(unsigned int channel, unsigned int width, unsigned int height, unsigned int kernelSize, std::vector<std::vector<unsigned int>> data);
 
-std::vector<std::vector<unsigned int>> ccl(unsigned int channel, unsigned int threshold, unsigned int width, unsigned int height, unsigned int kernelSize, std::vector<std::vector<unsigned int>> data);
+std::vector<std::vector<unsigned int>> ccl(unsigned int channel, unsigned int threshold, unsigned int width, unsigned int height, std::vector<std::vector<unsigned int>> data);
 
 #endif

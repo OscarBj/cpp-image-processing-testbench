@@ -19,11 +19,12 @@ BMPFilehandler::BMPFilehandler(char *infl, char *outfl)
 
 vector<vector<unsigned int>> BMPFilehandler::ReadBMP()
 {
-    int i;
     FILE* f = fopen(inp_filename, "rb");
 
-    if(f == NULL)
-        throw "Argument Exception";
+    if(f == NULL) {
+        cout << "   ERROR: Invalid input file" << endl << endl;
+        exit(0);
+    }
 
     fread(header, sizeof(unsigned char), 54, f); // read the 54-byte header
 
@@ -37,15 +38,15 @@ vector<vector<unsigned int>> BMPFilehandler::ReadBMP()
     cout << endl;
 
     int row_padded = (width*3 + 3) & (~3);
-    
+
     int size = width * abs(height);
-    
+
     vector<vector<unsigned int>> data(size,{0,0,0});
 
     unsigned char* row = new unsigned char[row_padded];
 
     unsigned char tmp;
-    
+
     int r,g,b;
 
     for(int i = 0; i < height; i++)
@@ -71,8 +72,7 @@ vector<vector<unsigned int>> BMPFilehandler::ReadBMP()
 
 unsigned char* BMPFilehandler::ReadHeader() {
     int i;
-    char inp[] = "inputs/test_in.bmp";
-    FILE* f = fopen(inp, "rb");
+    FILE* f = fopen(inp_filename, "rb");
 
     if(f == NULL)
         throw "Argument Exception";
@@ -107,7 +107,7 @@ void BMPFilehandler::WriteBMP(int width, int height, vector<vector<unsigned int>
             tmp[1] = data[(i*width)+(j)][1];
             tmp[0] = data[(i*width)+(j)][2];
 
-            fwrite(tmp, sizeof(unsigned char), 3, imageFile);           
+            fwrite(tmp, sizeof(unsigned char), 3, imageFile);
         }
     }
 
