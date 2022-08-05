@@ -81,7 +81,7 @@ vector<unsigned int> getRectWindow(unsigned int px_idx, unsigned int width, unsi
     return window;
 }
 
-vector<vector<unsigned int>> boxFilt(unsigned int channel, unsigned int width, unsigned int height, unsigned int kernelSize, vector<vector<unsigned int>> data)
+vector<vector<unsigned int>> boxFilt(unsigned int width, unsigned int height, unsigned int kernelSize, vector<vector<unsigned int>> data)
 {
     vector<unsigned int> ch0_data(width*height,0);
     vector<unsigned int> ch1_data(width*height,0);
@@ -131,7 +131,7 @@ vector<vector<unsigned int>> boxFilt(unsigned int channel, unsigned int width, u
     return odata;
 }
 
-vector<vector<unsigned int>> bufferTest(unsigned int channel, unsigned int width, unsigned int height, unsigned int kernelSize, vector<vector<unsigned int>> data)
+vector<vector<unsigned int>> bufferTest(unsigned int width, unsigned int height, unsigned int kernelSize, vector<vector<unsigned int>> data)
 {
     vector<unsigned int> ch0_data(width*height,0);
     vector<unsigned int> ch1_data(width*height,0);
@@ -188,7 +188,7 @@ vector<vector<unsigned int>> bufferTest(unsigned int channel, unsigned int width
             ch2_window = getRectWindow(j, width, height, kernelSize, ch2_rowBuffers);
 
             // Data mismatch
-            if(data[(i*width)+(j)][0] != ch0_window[windowCenter]
+            if(data[(i*width)+(j)][0] != ch0_window[windowCenter] // CENTER PIXEL
                 || data[(i*width)+(j)][1] != ch1_window[windowCenter]
                 || data[(i*width)+(j)][2] != ch2_window[windowCenter]
                 ) {
@@ -196,7 +196,15 @@ vector<vector<unsigned int>> bufferTest(unsigned int channel, unsigned int width
                 odata[(i*width)+(j)][0] = 255;
                 odata[(i*width)+(j)][1] = 0;
                 odata[(i*width)+(j)][2] = 0;
-
+            } else if (j > 0)
+                if (data[(i*width)+(j-1)][0] != ch0_window[windowCenter-1] // LEFT PIXEL
+                || data[(i*width)+(j-1)][1] != ch1_window[windowCenter-1]
+                || data[(i*width)+(j-1)][2] != ch2_window[windowCenter-1])
+                {
+                windowErrors = windowErrors + 1;
+                odata[(i*width)+(j)][0] = 0;
+                odata[(i*width)+(j)][1] = 255;
+                odata[(i*width)+(j)][2] = 0;
             } else if(rbfe) { // Buffer row error as blue
                 odata[(i*width)+(j)][0] = 0;
                 odata[(i*width)+(j)][1] = 0;
@@ -219,10 +227,10 @@ vector<vector<unsigned int>> bufferTest(unsigned int channel, unsigned int width
 // TODO
 vector<vector<unsigned int>> ccl(unsigned int channel, unsigned int threshold, unsigned int width, unsigned int height, vector<vector<unsigned int>> data)
 {
-    vector<uint8_t> ch_data(width*height,0);
+    vector<unsigned int> ch_data(width*height,0);
     for(int i = 0; i < data.size(); i++)
     {
-        ch_data[i] = data[i][channel] >= threshold ? 0xf : 0x0; // Operate on 1 channel & apply threshold;
+        ch_data[i] = data[i][channel] >= threshold ? 0xff : 0x0; // Operate on 1 channel & apply threshold;
     }
 
     vector<vector<unsigned int>> odata(data.size(),{0,0,0});
@@ -235,7 +243,14 @@ vector<vector<unsigned int>> ccl(unsigned int channel, unsigned int threshold, u
 
     int windowCenter = 4;
     int windowLeft = 3;
-    int windowBottom = 7;
+    int windowRight = 5;
+    int windowBottom = 1;
+    int windowTop = 7;
+
+    uint8_t label = 50;
+    int lb = 0;
+    uint8_t feature = 255;
+
     for(int i = 0; i < height; i++)
     {
         rowBuffers = getRowBuffers(i, width, height, 1, ch_data);
@@ -244,19 +259,54 @@ vector<vector<unsigned int>> ccl(unsigned int channel, unsigned int threshold, u
         {
             window = getRectWindow(j, width, height, 1, rowBuffers);
 
-            if(window[windowBottom] > 0x0) {
+            if(window[windowBottom] > 0x0 && window[windowCenter] > 0x0 && features[window[windowBottom]] != features[window[windowCenter]]) {
 
-            } else if(window[windowLeft] > 0x0) {
+                ch_data[(i*width)+(j)] = window[windowBottom];
+                rowBuffers[1][j] = window[windowBottom];
 
-            } else {
+                if(window[windowLeft] > 0x0 && j>0 && features[window[windowLeft]] != features[window[windowBottom]]) { // Fix left feature ot point to bottom
+                    features[window[windowLeft]] = features[window[windowBottom]];
+                    ch_data[(i*width)+(j-1)] = window[windowBottom];
+                    rowBuffers[1][j-1] = window[windowBottom];
 
+                    lb--;
+                }
+            } else if(window[windowLeft] > 0x0 && window[windowCenter] > 0x0 && features[window[windowLeft]] != features[window[windowCenter]]) {
+                ch_data[(i*width)+(j)] = window[windowLeft];
+                rowBuffers[1][j] = window[windowLeft];
+
+            } else if(window[windowCenter] > 0x0) {
+                lb++;
+                label++;
+                ch_data[(i*width)+(j)] = (unsigned int) label;
+                rowBuffers[1][j] = (unsigned int) label;
+                feature-=10;
+                features[label] = (unsigned int) feature;
             }
-
-            // odata[(i*width)+(j)][0] = avg;
-            // odata[(i*width)+(j)][1] = avg;
-            // odata[(i*width)+(j)][2] = avg;
         }
     }
+
+    for(int i = 0; i < height; i++)
+    {
+
+        rowBuffers = getRowBuffers(i, width, height, 1, ch_data);
+        for(int j = 0; j < width; j++)
+        {
+            window = getRectWindow(j, width, height, 1, rowBuffers);
+            if(features[window[windowCenter]] > 0) {
+                odata[(i*width)+(j)][0] = (unsigned int)features[window[windowCenter]];
+                odata[(i*width)+(j)][1] = 0;
+                odata[(i*width)+(j)][2] = 0;
+
+            }
+            else {
+                odata[(i*width)+(j)][0] = ch_data[(i*width)+(j)];
+                odata[(i*width)+(j)][1] = ch_data[(i*width)+(j)];
+                odata[(i*width)+(j)][2] = ch_data[(i*width)+(j)];
+            }
+        }
+    }
+    cout << endl << "   " << (int) lb << " features found" << endl;
 
     return odata;
 }

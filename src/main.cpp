@@ -14,6 +14,7 @@ int main(int argc, char** argv)
     bool testmode = false;
     unsigned int kernelSize = 1;
     unsigned int channel = 0;
+    unsigned int threshold = 128;
 
     char *in = (char*) "inputs/test_in.bmp";
     char *out = (char*) "outputs/out_put.bmp";
@@ -28,6 +29,9 @@ int main(int argc, char** argv)
             }
             if(string(argv[i]) == "-f" && argc > i+1) {
                 in = argv[i+1];
+            }
+            if(string(argv[i]) == "-th" && argc > i+1) {
+                threshold = atoi(argv[i+1]) >= 0 && atoi(argv[i+1]) < 255 ? atoi(argv[i+1]) : 128;
             }
         }
     }
@@ -56,7 +60,7 @@ int main(int argc, char** argv)
     if(testmode) {
         cout << " ---- TESTS --------------" << endl;
         cout << endl;
-        dout = bufferTest(channel,width,height,kernelSize,dout);
+        dout = bufferTest(width,height,kernelSize,dout);
     } else {
         cout << endl;
         cout << " ---- RUN ----------------" << endl;
@@ -64,14 +68,26 @@ int main(int argc, char** argv)
         cout << "   running box filter...";
         cout << endl;
 
-        chrono::steady_clock::time_point begin = chrono::steady_clock::now();
+        chrono::steady_clock::time_point box_begin = chrono::steady_clock::now();
 
-        dout = boxFilt(0,width,height,kernelSize,dout);
+        dout = boxFilt(width,height,kernelSize,dout);
 
-        chrono::steady_clock::time_point end = chrono::steady_clock::now();
+        chrono::steady_clock::time_point box_end = chrono::steady_clock::now();
 
         cout << endl;
-        cout << "   Finished in: " << chrono::duration_cast<std::chrono::milliseconds>(end - begin).count() << "[ms]" << endl;
+        cout << "   box filter finished in: " << chrono::duration_cast<std::chrono::milliseconds>(box_end - box_begin).count() << "[ms]" << endl;
+        cout << endl;
+        cout << "   running connected component labeling...";
+        cout << endl;
+
+        chrono::steady_clock::time_point ccl_begin = chrono::steady_clock::now();
+
+        dout = ccl(channel,5,width,height,dout);
+
+        chrono::steady_clock::time_point ccl_end = chrono::steady_clock::now();
+
+        cout << endl;
+        cout << "   ccl finished in: " << chrono::duration_cast<std::chrono::milliseconds>(ccl_end - ccl_begin).count() << "[ms]" << endl;
         cout << endl;
     }
 
