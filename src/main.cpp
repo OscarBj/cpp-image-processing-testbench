@@ -44,7 +44,8 @@ int main(int argc, char** argv)
     cout << " ---- TESTBENCH CONFIG --" << endl << endl;
     cout << "    Test mode: " << (testmode == 0 ? "false" : "true") << endl;
     cout << "  Kernel Size: " << kernelSize << endl;
-    cout << "      Channel: " << channel << endl << endl;
+    cout << "      Channel: " << channel << endl;
+    cout << "    Threshold: " << threshold << endl << endl;
     cout << " ---- INPUT INFO --------" << endl;
     cout << endl;
 
@@ -54,8 +55,8 @@ int main(int argc, char** argv)
     int height = *(int*)&header[22];
 
     // Transform
-    // dout = transformPxChVal(1,255,0,dout); // Set channel 1 (green) to 0
-    // dout = transformPxChVal(2,255,0,dout); // Set channel 2 (blue) to 0
+    // transformPxChVal(1,255,0,dout); // Set channel 1 (green) to 0
+    // transformPxChVal(2,255,0,dout); // Set channel 2 (blue) to 0
 
     if(testmode) {
         cout << " ---- TESTS --------------" << endl;
@@ -70,7 +71,7 @@ int main(int argc, char** argv)
 
         chrono::steady_clock::time_point box_begin = chrono::steady_clock::now();
 
-        dout = boxFilt(width,height,kernelSize,dout);
+        boxFilt(width,height,kernelSize,dout);
 
         chrono::steady_clock::time_point box_end = chrono::steady_clock::now();
 
@@ -82,7 +83,7 @@ int main(int argc, char** argv)
 
         chrono::steady_clock::time_point ccl_begin = chrono::steady_clock::now();
 
-        dout = ccl(channel,5,width,height,dout);
+        ccl(channel,5,width,height,dout);
 
         chrono::steady_clock::time_point ccl_end = chrono::steady_clock::now();
 

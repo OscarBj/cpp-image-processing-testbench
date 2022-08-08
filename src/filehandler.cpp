@@ -83,7 +83,7 @@ unsigned char* BMPFilehandler::ReadHeader() {
     return info;
 }
 
-void BMPFilehandler::WriteBMP(int width, int height, vector<vector<unsigned int>> data)
+void BMPFilehandler::WriteBMP(int width, int height, vector<vector<unsigned int>>& data)
 {
     FILE* imageFile = fopen(outp_filename, "wb");
 
