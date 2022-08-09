@@ -11,4 +11,6 @@ std::vector<std::vector<unsigned int>> bufferTest(unsigned int width, unsigned i
 
 void ccl(unsigned int channel, unsigned int threshold, unsigned int width, unsigned int height, std::vector<std::vector<unsigned int>>& data);
 
+void gradientFilter(unsigned int channel, unsigned int threshold, unsigned int width, unsigned int height, std::vector<std::vector<unsigned int>>& data);
+
 #endif

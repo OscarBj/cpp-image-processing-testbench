@@ -90,6 +90,9 @@ int main(int argc, char** argv)
         cout << endl;
         cout << "   ccl finished in: " << chrono::duration_cast<std::chrono::milliseconds>(ccl_end - ccl_begin).count() << "[ms]" << endl;
         cout << endl;
+
+        gradientFilter(channel, threshold, width,height,dout);
+
     }
 
     cout << endl;

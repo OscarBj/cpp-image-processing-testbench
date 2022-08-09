@@ -3,6 +3,8 @@
 #include <string.h>
 #include <vector>
 #include <numeric>
+#include <math.h>
+#include <functional>
 
 #include "imageprocessor.h"
 
@@ -93,7 +95,8 @@ void getRectWindow(unsigned int px_idx, unsigned int read_idx, unsigned int widt
     }
 }
 
-void boxFilt(unsigned int width, unsigned int height, unsigned int kernelSize, vector<vector<unsigned int>>& data)
+// void traverseImage(unsigned int width, unsigned int height, unsigned int kernelSize, vector<vector<unsigned int>>& data, void(*kernelTask)(unsigned int, unsigned int, vector<vector<unsigned int>>&, vector<vector<unsigned int>>&))
+void traverseImage(unsigned int width, unsigned int height, unsigned int kernelSize, vector<vector<unsigned int>>& data, function< void (unsigned int, unsigned int, vector<vector<unsigned int>>&, vector<vector<unsigned int>>&)> kernelTask)
 {
     vector<unsigned int> ch0_data(width*height,0);
     vector<unsigned int> ch1_data(width*height,0);
@@ -108,17 +111,13 @@ void boxFilt(unsigned int width, unsigned int height, unsigned int kernelSize, v
     vector<vector<unsigned int>> ch0_rowBuffers((kernelSize*2)+1, vector<unsigned int>(width, 0));
     vector<vector<unsigned int>> ch1_rowBuffers((kernelSize*2)+1, vector<unsigned int>(width, 0));
     vector<vector<unsigned int>> ch2_rowBuffers((kernelSize*2)+1, vector<unsigned int>(width, 0));
-    vector<unsigned int> ch0_window(((kernelSize*2)+1)*((kernelSize*2)+1), 0);
-    vector<unsigned int> ch1_window(((kernelSize*2)+1)*((kernelSize*2)+1), 0);
-    vector<unsigned int> ch2_window(((kernelSize*2)+1)*((kernelSize*2)+1), 0);
+    
+    vector<vector<unsigned int>> kernelWindow(3, vector<unsigned int>(((kernelSize*2)+1)*((kernelSize*2)+1), 0));
 
     int buf_start = 0;
     int buf_center = kernelSize;
     int buf_end = 0;
 
-    int ch0_avg;
-    int ch1_avg;
-    int ch2_avg;
     for(int i = 0; i < height; i++)
     {
         if(i < (kernelSize*2)) {
@@ -137,21 +136,42 @@ void boxFilt(unsigned int width, unsigned int height, unsigned int kernelSize, v
 
         for(int j = 0; j < width; j++)
         {
-            getRectWindow(j, buf_start, width, height, kernelSize, ch0_window, ch0_rowBuffers);
-            getRectWindow(j, buf_start, width, height, kernelSize, ch1_window, ch1_rowBuffers);
-            getRectWindow(j, buf_start, width, height, kernelSize, ch2_window, ch2_rowBuffers);
+            getRectWindow(j, buf_start, width, height, kernelSize, kernelWindow[0], ch0_rowBuffers);
+            getRectWindow(j, buf_start, width, height, kernelSize, kernelWindow[1], ch1_rowBuffers);
+            getRectWindow(j, buf_start, width, height, kernelSize, kernelWindow[2], ch2_rowBuffers);
 
-            ch0_avg = (unsigned int) accumulate(ch0_window.begin(), ch0_window.end(), 0.0) / ch0_window.size();
-            ch1_avg = (unsigned int) accumulate(ch1_window.begin(), ch1_window.end(), 0.0) / ch1_window.size();
-            ch2_avg = (unsigned int) accumulate(ch2_window.begin(), ch2_window.end(), 0.0) / ch2_window.size();
-
-
-            data[(i*width)+(j)][0] = ch0_avg;
-            data[(i*width)+(j)][1] = ch1_avg;
-            data[(i*width)+(j)][2] = ch2_avg;
+            kernelTask((i*width)+(j), kernelSize, kernelWindow, data);
         }
     }
 }
+
+void boxFilt(unsigned int width, unsigned int height, unsigned int kernelSize, vector<vector<unsigned int>>& data)
+{
+    auto compute3chAvg = [](unsigned int xy, unsigned int kernelSize, vector<vector<unsigned int>>& kernelWindow, vector<vector<unsigned int>>& data) {
+        unsigned int ch0_avg = 0;
+        unsigned int ch1_avg = 0;
+        unsigned int ch2_avg = 0;
+
+        for(int i = 0; i < (kernelSize*2)+1; i++)
+        {
+            for(int j = 0; j < (kernelSize*2)+1; j++)
+            {
+
+                ch0_avg += kernelWindow[0][(i*((kernelSize*2)+1)) + j];
+                ch1_avg += kernelWindow[1][(i*((kernelSize*2)+1)) + j];
+                ch2_avg += kernelWindow[2][(i*((kernelSize*2)+1)) + j];
+
+            }
+        }
+
+        data[xy][0] = ch0_avg/kernelWindow[0].size();
+        data[xy][1] = ch1_avg/kernelWindow[1].size();
+        data[xy][2] = ch2_avg/kernelWindow[2].size();
+    };
+    traverseImage(width, height, kernelSize, data, compute3chAvg);
+}
+
+
 
 vector<vector<unsigned int>> bufferTest(unsigned int width, unsigned int height, unsigned int kernelSize, vector<vector<unsigned int>>& data)
 {
@@ -380,4 +400,33 @@ void ccl(unsigned int channel, unsigned int threshold, unsigned int width, unsig
         }
     }
     cout << endl << "   " << (int) lb << " features found" << endl;
+}
+
+void gradientFilter(unsigned int channel, unsigned int threshold, unsigned int width, unsigned int height, vector<vector<unsigned int>>& data)
+{
+    auto applyGradient = [&](unsigned int xy, unsigned int kernelSize, vector<vector<unsigned int>>& kernelWindow, vector<vector<unsigned int>>& data) {
+
+        int magX = 0;
+        int magY = 0;
+
+        int Gx[] = {-1,0,1, -2,0,2, -1,0,1};
+        int Gy[] = {1,2,1, 0,0,0, -1-2-1};
+
+        for(int i = 0; i < 3; i++)
+        {
+            for(int j = 0; j < 3; j++)
+            {
+                magX += kernelWindow[channel][(i*3) + j]*Gx[(i*3)+j];
+                magY += kernelWindow[channel][(i*3) + j]*Gy[(i*3)+j];
+            }
+        }
+
+        int mag = (int)sqrt((magX * magX) + (magY * magY));
+        mag = abs(mag);
+
+        data[xy][0] = mag > threshold ? mag : 0;
+        data[xy][1] = mag > threshold ? mag : 0;
+        data[xy][2] = mag > threshold ? mag : 0;
+    };
+    traverseImage(width, height, 1, data, applyGradient);
 }
