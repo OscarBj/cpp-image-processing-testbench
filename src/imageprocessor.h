@@ -9,7 +9,7 @@ void boxFilt(unsigned int width, unsigned int height, unsigned int kernelSize, s
 
 std::vector<std::vector<unsigned int>> bufferTest(unsigned int width, unsigned int height, unsigned int kernelSize, std::vector<std::vector<unsigned int>>& data);
 
-void ccl(unsigned int channel, unsigned int threshold, unsigned int width, unsigned int height, std::vector<std::vector<unsigned int>>& data);
+void ccl(unsigned int channel, unsigned int threshold, unsigned int width, unsigned int height, std::vector<std::vector<unsigned int>>& data, bool centroiding);
 
 void gradientFilter(unsigned int channel, unsigned int threshold, unsigned int width, unsigned int height, std::vector<std::vector<unsigned int>>& data);
 

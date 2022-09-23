@@ -279,7 +279,7 @@ vector<vector<unsigned int>> bufferTest(unsigned int width, unsigned int height,
     return odata;
 }
 
-void ccl(unsigned int channel, unsigned int threshold, unsigned int width, unsigned int height, vector<vector<unsigned int>>& data)
+void ccl(unsigned int channel, unsigned int threshold, unsigned int width, unsigned int height, vector<vector<unsigned int>>& data, bool centroiding = false)
 {
     vector<unsigned int> ch_data(width*height,0);
     for(int i = 0; i < data.size(); i++)
@@ -294,6 +294,12 @@ void ccl(unsigned int channel, unsigned int threshold, unsigned int width, unsig
 
     vector<unsigned int> labels(255,0);
     vector<unsigned int> features(255,0);
+    vector<vector<int>> featureCoordinates(255,vector<int>(4, -1));
+    // Coordinate indecies
+    uint8_t xMin = 0;
+    uint8_t yMin = 1;
+    uint8_t xMax = 2;
+    uint8_t yMax = 3;
 
     int windowCenter = 4;
     int windowLeft = 3;
@@ -307,7 +313,7 @@ void ccl(unsigned int channel, unsigned int threshold, unsigned int width, unsig
 
     uint8_t label = 1;
     int lb = 0;
-    uint8_t feature = 255;
+    uint8_t feature = 254;
     
     bool halt_process = false;
 
@@ -332,7 +338,17 @@ void ccl(unsigned int channel, unsigned int threshold, unsigned int width, unsig
                 ch_data[(i*width)+(j)] = window[windowBottom];
                 rowBuffers[buf_center][j] = window[windowBottom];
 
+                if(centroiding) featureCoordinates[features[window[windowBottom]]][yMax] = i > featureCoordinates[features[window[windowBottom]]][yMax] ? i : featureCoordinates[features[window[windowBottom]]][yMax];
+
                 if(window[windowLeft] > 0x0 && j>0 && features[window[windowLeft]] != features[window[windowBottom]]) { // Merge bottom & left features
+
+                    if(centroiding) {
+                        featureCoordinates[features[window[windowBottom]]][xMin] = featureCoordinates[features[window[windowBottom]]][xMin] > featureCoordinates[features[window[windowLeft]]][xMin] ? featureCoordinates[features[window[windowLeft]]][xMin] : featureCoordinates[features[window[windowBottom]]][xMin];
+                        featureCoordinates[features[window[windowBottom]]][yMin] = featureCoordinates[features[window[windowBottom]]][yMin] > featureCoordinates[features[window[windowLeft]]][yMin] ? featureCoordinates[features[window[windowLeft]]][yMin] : featureCoordinates[features[window[windowBottom]]][yMin];
+                        featureCoordinates[features[window[windowBottom]]][xMax] = featureCoordinates[features[window[windowBottom]]][xMax] < featureCoordinates[features[window[windowLeft]]][xMax] ? featureCoordinates[features[window[windowLeft]]][xMax] : featureCoordinates[features[window[windowBottom]]][xMax];
+                        featureCoordinates[features[window[windowBottom]]][yMax] = featureCoordinates[features[window[windowBottom]]][yMax] < featureCoordinates[features[window[windowLeft]]][yMax] ? featureCoordinates[features[window[windowLeft]]][yMax] : featureCoordinates[features[window[windowBottom]]][yMax];
+                    }
+
                     features[window[windowLeft]] = features[window[windowBottom]];
                     ch_data[(i*width)+(j-1)] = window[windowBottom];
                     rowBuffers[buf_center][j-1] = window[windowBottom];
@@ -343,13 +359,18 @@ void ccl(unsigned int channel, unsigned int threshold, unsigned int width, unsig
                 ch_data[(i*width)+(j)] = window[windowLeft];
                 rowBuffers[buf_center][j] = window[windowLeft];
 
+                if(centroiding) featureCoordinates[features[window[windowLeft]]][xMax] = j > featureCoordinates[features[window[windowLeft]]][xMax] ? j : featureCoordinates[features[window[windowLeft]]][xMax];
+
             } else if(window[windowCenter] > 0x0) { // New feature
                 lb++; // +1 Feature
                 ch_data[(i*width)+(j)] = (unsigned int) label;
                 rowBuffers[buf_center][j] = (unsigned int) label;
                 features[label] = (unsigned int) feature;
+
+                if(centroiding) featureCoordinates[features[label]] = {j,i,j,i}; // x1, y1, x2, y2
+
                 label++;
-                feature--;
+                feature--;                
             }
 
             // Handle feature table & label limitations
@@ -368,34 +389,98 @@ void ccl(unsigned int channel, unsigned int threshold, unsigned int width, unsig
         }
     }
 
-    buf_start = 0;
-    buf_center = kernelSize;
-    buf_end = 0;
+    if(centroiding) {
+        int i,x,y,x1,y1,x2,y2,cx,cy;
 
-    for(int i = 0; i < height; i++)
-    {
-        if(i < (kernelSize*2)) {
-            getRowBuffers(i, width, height, 1, rowBuffers, ch_data);
-        } else {
-            getNextRowBuffer(i, buf_start, width, height, kernelSize, rowBuffers, ch_data);
+        for(i = 0; i < 255; i++) {
+            if(featureCoordinates[features[i]][xMin] >= 0) {
+                x1 = featureCoordinates[features[i]][xMin] - 2 >= 0 ? featureCoordinates[features[i]][xMin] - 2 : 0;
+                y1 = featureCoordinates[features[i]][yMin] - 2 >= 0 ? featureCoordinates[features[i]][yMin] - 2 : 0;
+                x2 = featureCoordinates[features[i]][xMax] + 2 <= width ? featureCoordinates[features[i]][xMax] + 2 : 0;
+                y2 = featureCoordinates[features[i]][yMax] + 2 <= height ? featureCoordinates[features[i]][yMax] + 2 : 0;
 
-            buf_start = buf_start == kernelSize*2 ? 0 : buf_start + 1;
-            buf_center = buf_start + kernelSize > kernelSize*2 ? (buf_start + kernelSize) - ((kernelSize*2)+1) : buf_start + kernelSize;
-            buf_end = buf_start == 0 ? kernelSize*2 : buf_start - 1;
-        }
-        for(int j = 0; j < width; j++)
-        {
-            getRectWindow(j, buf_start, width, height, 1, window, rowBuffers);
-            if(features[window[windowCenter]] > 0) {
-                data[(i*width)+(j)][0] = (unsigned int)features[window[windowCenter]];
-                data[(i*width)+(j)][1] = 0;
-                data[(i*width)+(j)][2] = 0;
+                cx = (x2-x1)/2;
+                cy = (y2-y1)/2;
 
+                vector<unsigned int> feature_columns(vector<unsigned int>((x2-x1),1));
+                vector<unsigned int> feature_rows(vector<unsigned int>((y2-y1),1));
+
+                
+                for(y = y1; y <= y2; y++) {
+                    for(x = x1; x <= x2; x++) {
+                        feature_columns[x] = (feature_columns[x] + 0xffff) - (ch_data[(y*width)+(x)]*abs(x-cx));
+                        feature_rows[y] = (feature_rows[y] + 0xffff) - (ch_data[(y*width)+(x)]*abs(y-cy));
+                    }
+                }
+                cx = 0;
+                cy = 0;
+                for(y = y1; y <= y2; y++) {
+                    if(feature_rows[y] > feature_rows[cy]) cy = y;
+                    for(x = x1; x <= x2; x++) {
+                        if(feature_columns[x] > feature_columns[cx]) cx = x;
+                    }
+                }
+                for(y = y1; y <= y2; y++) {
+                    for(x = x1; x <= x2; x++) {
+                        if(y == y1) { //Bottom
+                            data[(y1*width)+x][0] = 255;
+                            data[(y1*width)+x][1] = 255;
+                            data[(y1*width)+x][2] = 255;
+                        } else if(y == y2) { // Top
+                            data[(y2*width)+x][0] = 255;
+                            data[(y2*width)+x][1] = 255;
+                            data[(y2*width)+x][2] = 255;
+                        } else if (x == x1) { // Left
+                            data[(y*width)+x1][0] = 255;
+                            data[(y*width)+x1][1] = 255;
+                            data[(y*width)+x1][2] = 255;
+                        } else if (x == x2) { // Right
+                            data[(y*width)+x2][0] = 255;
+                            data[(y*width)+x2][1] = 255;
+                            data[(y*width)+x2][2] = 255;
+                        } else if(features[ch_data[(y*width)+(x)]] == features[i]) { // Center
+                            // data[(y*width)+x][0] = 255;
+                            // data[(y*width)+x][1] = 0;
+                            // data[(y*width)+x][2] = 0;
+
+                        } else if(y == cy && x == cx) {
+                            data[(y*width)+x][0] = 255;
+                            data[(y*width)+x][1] = 255;
+                            data[(y*width)+x][2] = 0;
+                        }
+                    }
+                }
             }
-            else {
-                data[(i*width)+(j)][0] = ch_data[(i*width)+(j)];
-                data[(i*width)+(j)][1] = ch_data[(i*width)+(j)];
-                data[(i*width)+(j)][2] = ch_data[(i*width)+(j)];
+        }
+    } else {
+        buf_start = 0;
+        buf_center = kernelSize;
+        buf_end = 0;
+
+        for(int i = 0; i < height; i++)
+        {
+            if(i < (kernelSize*2)) {
+                getRowBuffers(i, width, height, 1, rowBuffers, ch_data);
+            } else {
+                getNextRowBuffer(i, buf_start, width, height, kernelSize, rowBuffers, ch_data);
+
+                buf_start = buf_start == kernelSize*2 ? 0 : buf_start + 1;
+                buf_center = buf_start + kernelSize > kernelSize*2 ? (buf_start + kernelSize) - ((kernelSize*2)+1) : buf_start + kernelSize;
+                buf_end = buf_start == 0 ? kernelSize*2 : buf_start - 1;
+            }
+            for(int j = 0; j < width; j++)
+            {
+                getRectWindow(j, buf_start, width, height, 1, window, rowBuffers);
+                if(features[window[windowCenter]] > 0) {
+                    data[(i*width)+(j)][0] = (unsigned int)features[window[windowCenter]];
+                    data[(i*width)+(j)][1] = 0;
+                    data[(i*width)+(j)][2] = 0;
+                }
+                else {
+                    data[(i*width)+(j)][0] = ch_data[(i*width)+(j)];
+                    data[(i*width)+(j)][1] = ch_data[(i*width)+(j)];
+                    data[(i*width)+(j)][2] = ch_data[(i*width)+(j)];
+                }
             }
         }
     }

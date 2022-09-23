@@ -83,7 +83,7 @@ int main(int argc, char** argv)
 
         chrono::steady_clock::time_point ccl_begin = chrono::steady_clock::now();
 
-        ccl(channel,5,width,height,dout);
+        ccl(channel, 5, width, height, dout, true);
 
         chrono::steady_clock::time_point ccl_end = chrono::steady_clock::now();
 
@@ -91,7 +91,7 @@ int main(int argc, char** argv)
         cout << "   ccl finished in: " << chrono::duration_cast<std::chrono::milliseconds>(ccl_end - ccl_begin).count() << "[ms]" << endl;
         cout << endl;
 
-        gradientFilter(channel, threshold, width,height,dout);
+        // gradientFilter(channel, threshold, width,height,dout);
 
     }
 
