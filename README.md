@@ -5,11 +5,14 @@
 - Testbench for prototyping image processing algorithms in c++
 - A collection of reusable image data structures & test methods accelerates development
 - Uses 24-bit BMP files as input/output
+- The image container consists of 3 vectors, each containg the image data for thier respective channel.
+- Images are traversed as a coordinate system, origo being in the left bottom corner
 
 Algorithms:
 - Linear box filter with variable kernel size
 - Connected component labeling (CCL)
 - Channel/pixel transform
+- Weighted centroiding
 
 Buffers & Tests:
 - Row buffer
@@ -20,7 +23,7 @@ Buffers & Tests:
 Compiler used: g++ (Ubuntu 9.4.0-1ubuntu1~20.04.1) 9.4.0
 
 Compile using:
-> g++ -o main.o src/*.cpp
+> g++ -o main.o src/*.cpp (-std=c++11)
 
 Run using:
 > ./main.o
@@ -55,3 +58,10 @@ Parameters:
 **-f** : Input file
 
     Location of input file. Default = test_in.bmp
+
+
+## CCL Operation Mode
+### features[label] -> feature_id
+- label = 1 -> 255
+- feature_id = 255 -> 1
+### featureCoordinates[feature_id] -> x1,y1,x2,y2

@@ -251,24 +251,25 @@ vector<vector<unsigned int>> bufferTest(unsigned int width, unsigned int height,
                 odata[(i*width)+(j)][0] = 255;
                 odata[(i*width)+(j)][1] = 0;
                 odata[(i*width)+(j)][2] = 0;
-            } else if (j > 0)
+            } else if (j > 0){
                 if (data[(i*width)+(j-1)][0] != ch0_window[windowCenter-1] // LEFT PIXEL
                 || data[(i*width)+(j-1)][1] != ch1_window[windowCenter-1]
-                || data[(i*width)+(j-1)][2] != ch2_window[windowCenter-1])
-                {
-                windowErrors = windowErrors + 1;
-                odata[(i*width)+(j)][0] = 0;
-                odata[(i*width)+(j)][1] = 255;
-                odata[(i*width)+(j)][2] = 0;
-            } else if(rbfe) { // Buffer row error as blue
-                odata[(i*width)+(j)][0] = 0;
-                odata[(i*width)+(j)][1] = 0;
-                odata[(i*width)+(j)][2] = 255;
+                || data[(i*width)+(j-1)][2] != ch2_window[windowCenter-1]
+                ) {
+                    windowErrors = windowErrors + 1;
+                    odata[(i*width)+(j)][0] = 0;
+                    odata[(i*width)+(j)][1] = 255;
+                    odata[(i*width)+(j)][2] = 0;
+                } else if (rbfe) { // Buffer row error as blue
+                    odata[(i*width)+(j)][0] = 0;
+                    odata[(i*width)+(j)][1] = 0;
+                    odata[(i*width)+(j)][2] = 255;
 
-            } else { // OK
-                odata[(i*width)+(j)][0] = ch0_window[windowCenter];
-                odata[(i*width)+(j)][1] = ch1_window[windowCenter];
-                odata[(i*width)+(j)][2] = ch2_window[windowCenter];
+                } else { // OK
+                    odata[(i*width)+(j)][0] = ch0_window[windowCenter];
+                    odata[(i*width)+(j)][1] = ch1_window[windowCenter];
+                    odata[(i*width)+(j)][2] = ch2_window[windowCenter];
+                }
             }
         }
     }
@@ -294,7 +295,6 @@ feature_descriptors ccl(unsigned int channel, unsigned int threshold, unsigned i
 
     feature_descriptors descriptors;
 
-    vector<unsigned int> labels(255,0);
     vector<unsigned int> features(255,0);
     vector<vector<int>> featureCoordinates(255,vector<int>(4, -1));
     // Coordinate indecies
@@ -349,6 +349,7 @@ feature_descriptors ccl(unsigned int channel, unsigned int threshold, unsigned i
                     featureCoordinates[features[window[windowBottom]]][xMax] = featureCoordinates[features[window[windowBottom]]][xMax] < featureCoordinates[features[window[windowLeft]]][xMax] ? featureCoordinates[features[window[windowLeft]]][xMax] : featureCoordinates[features[window[windowBottom]]][xMax];
                     featureCoordinates[features[window[windowBottom]]][yMax] = featureCoordinates[features[window[windowBottom]]][yMax] < featureCoordinates[features[window[windowLeft]]][yMax] ? featureCoordinates[features[window[windowLeft]]][yMax] : featureCoordinates[features[window[windowBottom]]][yMax];
 
+                    featureCoordinates[features[window[windowLeft]]] = {-1,-1,-1,-1};
                     features[window[windowLeft]] = features[window[windowBottom]];
                     ch_data[(i*width)+(j-1)] = window[windowBottom];
                     rowBuffers[buf_center][j-1] = window[windowBottom];
@@ -370,7 +371,7 @@ feature_descriptors ccl(unsigned int channel, unsigned int threshold, unsigned i
                 featureCoordinates[features[label]] = {j,i,j,i}; // x1, y1, x2, y2
 
                 label++;
-                feature--;                
+                feature--;
             }
 
             // Handle feature table & label limitations
@@ -421,7 +422,13 @@ feature_descriptors ccl(unsigned int channel, unsigned int threshold, unsigned i
             }
         }
     }
-    descriptors.labels = labels;
+    for(int i = 0; i < 255; i++) {
+        if(features[i] > 0) {
+            for(int j = i; j < 255; j++) {
+                if(i != j && features[j] == features[i]) features[j] = 0;
+            }
+        }
+    }
     descriptors.features = features;
     descriptors.featureCoordinates = featureCoordinates;
 
@@ -519,11 +526,11 @@ void centroid(unsigned int channel, unsigned int width, unsigned int height, fea
                         data[(y*width)+X2][1] = 255;
                         data[(y*width)+X2][2] = 255;
                     } else if(
-                        y == center_y && x == center_x ||
-                        y == center_y-1 && x == center_x ||
-                        y == center_y+1 && x == center_x ||
-                        y == center_y && x == center_x-1 ||
-                        y == center_y && x == center_x+1
+                        (y == center_y && x == center_x)   ||
+                        (y == center_y-1 && x == center_x) ||
+                        (y == center_y+1 && x == center_x) ||
+                        (y == center_y && x == center_x-1) ||
+                        (y == center_y && x == center_x+1)
                         ) {
                         data[(y*width)+x][0] = 0;
                         data[(y*width)+x][1] = 255;
