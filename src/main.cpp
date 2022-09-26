@@ -5,6 +5,7 @@
 
 #include "filehandler.h"
 #include "imageprocessor.h"
+#include "datagenerator.h"
 
 using namespace std;
 
@@ -15,12 +16,16 @@ int main(int argc, char** argv)
     unsigned int kernelSize = 1;
     unsigned int channel = 0;
     unsigned int threshold = 128;
+    bool vessel_data = false;
+
+    feature_descriptors descriptors;
 
     char *in = (char*) "inputs/test_in.bmp";
     char *out = (char*) "outputs/out_put.bmp";
     if(argc > 1) {
         for(int i = 1; i < argc; i++) {
             if(string(argv[i]) == "-t") testmode = true;
+            if(string(argv[i]) == "-vd") vessel_data = true;
             if(string(argv[i]) == "-k" && argc > i+1) {
                 kernelSize = atoi(argv[i+1]) > 0 ? atoi(argv[i+1]) : 1;
             }
@@ -35,79 +40,91 @@ int main(int argc, char** argv)
             }
         }
     }
-
-    chrono::steady_clock::time_point start = chrono::steady_clock::now();
-
-    BMPFilehandler filehandler(in, out);
-
-    cout << endl;
-    cout << " ---- TESTBENCH CONFIG --" << endl << endl;
-    cout << "    Test mode: " << (testmode == 0 ? "false" : "true") << endl;
-    cout << "  Kernel Size: " << kernelSize << endl;
-    cout << "      Channel: " << channel << endl;
-    cout << "    Threshold: " << threshold << endl << endl;
-    cout << " ---- INPUT INFO --------" << endl;
-    cout << endl;
-
-    vector<vector<unsigned int>> dout = filehandler.ReadBMP();
-    unsigned char *header = filehandler.ReadHeader();
-    int width = *(int*)&header[18];
-    int height = *(int*)&header[22];
-
-    // Transform
-    // transformPxChVal(1,255,0,dout); // Set channel 1 (green) to 0
-    // transformPxChVal(2,255,0,dout); // Set channel 2 (blue) to 0
-
-    if(testmode) {
-        cout << " ---- TESTS --------------" << endl;
-        cout << endl;
-        dout = bufferTest(width,height,kernelSize,dout);
+    if(vessel_data) {
+        generateVesselData(1,10,10);
     } else {
-        cout << endl;
-        cout << " ---- RUN ----------------" << endl;
-        cout << endl;
-        cout << "   running box filter...";
-        cout << endl;
+        chrono::steady_clock::time_point start = chrono::steady_clock::now();
 
-        chrono::steady_clock::time_point box_begin = chrono::steady_clock::now();
-
-        boxFilt(width,height,kernelSize,dout);
-
-        chrono::steady_clock::time_point box_end = chrono::steady_clock::now();
+        BMPFilehandler filehandler(in, out);
 
         cout << endl;
-        cout << "   box filter finished in: " << chrono::duration_cast<std::chrono::milliseconds>(box_end - box_begin).count() << "[ms]" << endl;
-        cout << endl;
-        cout << "   running connected component labeling...";
-        cout << endl;
-
-        chrono::steady_clock::time_point ccl_begin = chrono::steady_clock::now();
-
-        ccl(channel, 5, width, height, dout, true);
-
-        chrono::steady_clock::time_point ccl_end = chrono::steady_clock::now();
-
-        cout << endl;
-        cout << "   ccl finished in: " << chrono::duration_cast<std::chrono::milliseconds>(ccl_end - ccl_begin).count() << "[ms]" << endl;
+        cout << " ---- TESTBENCH CONFIG --" << endl << endl;
+        cout << "    Test mode: " << (testmode == 0 ? "false" : "true") << endl;
+        cout << "  Kernel Size: " << kernelSize << endl;
+        cout << "      Channel: " << channel << endl;
+        cout << "    Threshold: " << threshold << endl << endl;
+        cout << " ---- INPUT INFO --------" << endl;
         cout << endl;
 
-        // gradientFilter(channel, threshold, width,height,dout);
+        vector<vector<unsigned int>> dout = filehandler.ReadBMP();
+        unsigned char *header = filehandler.ReadHeader();
+        int width = *(int*)&header[18];
+        int height = *(int*)&header[22];
 
+        // Transform
+        // transformPxChVal(1,255,0,dout); // Set channel 1 (green) to 0
+        // transformPxChVal(2,255,0,dout); // Set channel 2 (blue) to 0
+
+        if(testmode) {
+            cout << " ---- TESTS --------------" << endl;
+            cout << endl;
+            dout = bufferTest(width,height,kernelSize,dout);
+        } else {
+            cout << endl;
+            cout << " ---- RUN ----------------" << endl;
+            cout << endl;
+            cout << "   running box filter...";
+            cout << endl;
+
+            chrono::steady_clock::time_point box_begin = chrono::steady_clock::now();
+
+            boxFilt(width,height,kernelSize,dout);
+
+            chrono::steady_clock::time_point box_end = chrono::steady_clock::now();
+
+            cout << endl;
+            cout << "   box filter finished in: " << chrono::duration_cast<std::chrono::milliseconds>(box_end - box_begin).count() << "[ms]" << endl;
+            cout << endl;
+            cout << "   running connected component labeling...";
+            cout << endl;
+
+            chrono::steady_clock::time_point ccl_begin = chrono::steady_clock::now();
+
+            descriptors = ccl(channel, 5, width, height, dout, false);
+
+            chrono::steady_clock::time_point ccl_end = chrono::steady_clock::now();
+
+            cout << endl;
+            cout << "   ccl finished in: " << chrono::duration_cast<std::chrono::milliseconds>(ccl_end - ccl_begin).count() << "[ms]" << endl;
+            cout << endl;
+
+            chrono::steady_clock::time_point centroid_begin = chrono::steady_clock::now();
+
+            centroid(channel, width, height, descriptors, dout);
+
+            chrono::steady_clock::time_point centroid_end = chrono::steady_clock::now();
+
+            cout << endl;
+            cout << "   centroid finished in: " << chrono::duration_cast<std::chrono::milliseconds>(centroid_end - centroid_begin).count() << "[ms]" << endl;
+            cout << endl;
+            // gradientFilter(channel, threshold, width,height,dout);
+
+        }
+
+        cout << endl;
+        cout << " ---- OUTPUT INFO -------" << endl;
+        cout << endl;
+
+        filehandler.WriteBMP(width, height, dout);
+
+        cout << endl;
+        cout << " -----------------------" << endl;
+        cout << endl;
+
+        chrono::steady_clock::time_point finish = chrono::steady_clock::now();
+        cout << "   Total: " << chrono::duration_cast<std::chrono::milliseconds>(finish - start).count() << "[ms]" << endl;
+        cout << endl;
     }
-
-    cout << endl;
-    cout << " ---- OUTPUT INFO -------" << endl;
-    cout << endl;
-
-    filehandler.WriteBMP(width, height, dout);
-
-    cout << endl;
-    cout << " -----------------------" << endl;
-    cout << endl;
-
-    chrono::steady_clock::time_point finish = chrono::steady_clock::now();
-    cout << "   Total: " << chrono::duration_cast<std::chrono::milliseconds>(finish - start).count() << "[ms]" << endl;
-    cout << endl;
 
     return 0;
 }

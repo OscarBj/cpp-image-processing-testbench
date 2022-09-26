@@ -17,4 +17,6 @@ class BMPFilehandler {
         void WriteBMP(int width, int height, std::vector<std::vector<unsigned int>>& data);
 };
 
+void writeBMP(char *outp_filename, int width, int height, unsigned char *header, std::vector<std::vector<unsigned int>>& data);
+
 #endif

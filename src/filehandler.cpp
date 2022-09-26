@@ -64,7 +64,7 @@ vector<vector<unsigned int>> BMPFilehandler::ReadBMP()
             data[(i*width)+(j)][2] = b;
         }
     }
-    delete row;
+    delete[] row;
 
     fclose(f);
     return data;
@@ -84,6 +84,37 @@ unsigned char* BMPFilehandler::ReadHeader() {
 }
 
 void BMPFilehandler::WriteBMP(int width, int height, vector<vector<unsigned int>>& data)
+{
+    FILE* imageFile = fopen(outp_filename, "wb");
+
+    cout << "   File: " << outp_filename << endl;
+
+    int row_padded = (width*3 + 3) & (~3);
+
+    int widthInBytes = width * 8;
+    int fileSize = 54 + (row_padded * height);
+
+    fwrite(header, 1, 54, imageFile);
+
+    unsigned char tmp[3] = { '0' };
+
+    for(int i = 0; i < height; i++)
+    {
+        for(int j = 0; j < width; j++)
+        {
+            // Convert (R, G, B) to (B, G, R)
+            tmp[2] = data[(i*width)+(j)][0];
+            tmp[1] = data[(i*width)+(j)][1];
+            tmp[0] = data[(i*width)+(j)][2];
+
+            fwrite(tmp, sizeof(unsigned char), 3, imageFile);
+        }
+    }
+
+    fclose(imageFile);
+}
+
+void writeBMP(char *outp_filename, int width, int height, unsigned char *header, vector<vector<unsigned int>>& data)
 {
     FILE* imageFile = fopen(outp_filename, "wb");
 
