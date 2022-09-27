@@ -1,4 +1,5 @@
 #include <stdlib.h>     /* srand, rand */
+#include <functional>   /*  uint8_t    */
 #include "filehandler.h"
 
 using namespace std;
@@ -13,7 +14,7 @@ void generateVesselData(unsigned int nrOfSamples, int sampleWidth, int sampleHei
 
     int fileSize = 54 + sampleHeight*stride;
 
-    vector<vector<unsigned int>> data(sampleWidth*sampleHeight,{0,0,0});
+    vector<vector<uint8_t>> data(sampleWidth*sampleHeight,{0,0,0});
 
     char *out = (char*) "outputs/generated/vessel.bmp";
     unsigned char *header;

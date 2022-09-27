@@ -35,11 +35,17 @@ Parameters:
     Tests included: Row buffer, kernel window buffer.
     Input image is compared against output from buffers. Detected errors are rendered on output image.
 
-**-th** : Threshold value.
+**-foreground_th** : Foreground threshold value.
 
     Threshold value for separating foreground from background.
     Default = 128
     Applies to ccl
+
+**-feature_th** : Feature threshold value.
+
+    Threshold value for passing feature brightness threshold
+    Default = 128
+    Applies to centroiding
 
 **-c** : Set channel.
 

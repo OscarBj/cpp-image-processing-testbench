@@ -297,6 +297,7 @@ feature_descriptors ccl(unsigned int channel, unsigned int threshold, unsigned i
 
     vector<unsigned int> features(255,0);
     vector<vector<int>> featureCoordinates(255,vector<int>(4, -1));
+    vector<unsigned int> featureBrightness(255,0);
     // Coordinate indecies
     uint8_t xMin = 0;
     uint8_t yMin = 1;
@@ -350,6 +351,10 @@ feature_descriptors ccl(unsigned int channel, unsigned int threshold, unsigned i
                     featureCoordinates[features[window[windowBottom]]][yMax] = featureCoordinates[features[window[windowBottom]]][yMax] < featureCoordinates[features[window[windowLeft]]][yMax] ? featureCoordinates[features[window[windowLeft]]][yMax] : featureCoordinates[features[window[windowBottom]]][yMax];
 
                     featureCoordinates[features[window[windowLeft]]] = {-1,-1,-1,-1};
+
+                    featureBrightness[features[window[windowBottom]]] += featureBrightness[features[window[windowLeft]]];
+                    featureBrightness[features[window[windowLeft]]] = 0;
+
                     features[window[windowLeft]] = features[window[windowBottom]];
                     ch_data[(i*width)+(j-1)] = window[windowBottom];
                     rowBuffers[buf_center][j-1] = window[windowBottom];
@@ -359,7 +364,7 @@ feature_descriptors ccl(unsigned int channel, unsigned int threshold, unsigned i
             } else if(window[windowLeft] > 0x0 && window[windowCenter] > 0x0 && features[window[windowLeft]] != features[window[windowCenter]]) { // Assign to left feature
                 ch_data[(i*width)+(j)] = window[windowLeft];
                 rowBuffers[buf_center][j] = window[windowLeft];
-
+                featureBrightness[features[window[windowLeft]]] += data[(i*width)+(j)][channel];
                 featureCoordinates[features[window[windowLeft]]][xMax] = j > featureCoordinates[features[window[windowLeft]]][xMax] ? j : featureCoordinates[features[window[windowLeft]]][xMax];
 
             } else if(window[windowCenter] > 0x0) { // New feature
@@ -367,7 +372,7 @@ feature_descriptors ccl(unsigned int channel, unsigned int threshold, unsigned i
                 ch_data[(i*width)+(j)] = (unsigned int) label;
                 rowBuffers[buf_center][j] = (unsigned int) label;
                 features[label] = (unsigned int) feature;
-
+                featureBrightness[features[label]] = data[(i*width)+(j)][channel];
                 featureCoordinates[features[label]] = {j,i,j,i}; // x1, y1, x2, y2
 
                 label++;
@@ -431,12 +436,13 @@ feature_descriptors ccl(unsigned int channel, unsigned int threshold, unsigned i
     }
     descriptors.features = features;
     descriptors.featureCoordinates = featureCoordinates;
+    descriptors.featureBrightness = featureBrightness;
 
     cout << endl << "   " << (int) lb << " features found" << endl;
     return descriptors;
 }
 
-void centroid(unsigned int channel, unsigned int width, unsigned int height, feature_descriptors descriptors, vector<vector<unsigned int>>& data) {
+void centroid(unsigned int channel, unsigned int feature_th, unsigned int width, unsigned int height, feature_descriptors descriptors, vector<vector<unsigned int>>& data) {
 
     int i,x,y,x1,y1,x2,y2,X1,X2,Y1,Y2,center_x,center_y,tot_x,tot_y;
 
@@ -449,7 +455,7 @@ void centroid(unsigned int channel, unsigned int width, unsigned int height, fea
     vector<unsigned int> feature_rows;
 
     for(i = 0; i < 255; i++) {
-        if(descriptors.featureCoordinates[descriptors.features[i]][xMin] >= 0) {
+        if(descriptors.featureBrightness[descriptors.features[i]] >= feature_th) {
             X1 = descriptors.featureCoordinates[descriptors.features[i]][xMin] - 2 >= 0 ? descriptors.featureCoordinates[descriptors.features[i]][xMin] - 2 : 0;
             Y1 = descriptors.featureCoordinates[descriptors.features[i]][yMin] - 2 >= 0 ? descriptors.featureCoordinates[descriptors.features[i]][yMin] - 2 : 0;
             X2 = descriptors.featureCoordinates[descriptors.features[i]][xMax] + 2 <= width ? descriptors.featureCoordinates[descriptors.features[i]][xMax] + 2 : 0;

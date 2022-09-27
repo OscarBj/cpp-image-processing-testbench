@@ -15,7 +15,8 @@ int main(int argc, char** argv)
     bool testmode = false;
     unsigned int kernelSize = 1;
     unsigned int channel = 0;
-    unsigned int threshold = 128;
+    unsigned int fg_th = 128;
+    unsigned int feature_th = 128;
     bool vessel_data = false;
 
     feature_descriptors descriptors;
@@ -35,8 +36,11 @@ int main(int argc, char** argv)
             if(string(argv[i]) == "-f" && argc > i+1) {
                 in = argv[i+1];
             }
-            if(string(argv[i]) == "-th" && argc > i+1) {
-                threshold = atoi(argv[i+1]) >= 0 && atoi(argv[i+1]) < 255 ? atoi(argv[i+1]) : 128;
+            if(string(argv[i]) == "-foreground_th" && argc > i+1) {
+                fg_th = atoi(argv[i+1]) >= 0 && atoi(argv[i+1]) < 255 ? atoi(argv[i+1]) : 128;
+            }
+            if(string(argv[i]) == "-feature_th" && argc > i+1) {
+                feature_th = atoi(argv[i+1]);
             }
         }
     }
@@ -52,14 +56,15 @@ int main(int argc, char** argv)
         cout << "    Test mode: " << (testmode == 0 ? "false" : "true") << endl;
         cout << "  Kernel Size: " << kernelSize << endl;
         cout << "      Channel: " << channel << endl;
-        cout << "    Threshold: " << threshold << endl << endl;
+        cout << " Foreground threshold: " << fg_th << endl;
+        cout << "    Feature threshold: " << feature_th << endl << endl;
         cout << " ---- INPUT INFO --------" << endl;
         cout << endl;
 
         vector<vector<unsigned int>> dout = filehandler.ReadBMP();
         unsigned char *header = filehandler.ReadHeader();
         int width = *(int*)&header[18];
-        int height = *(int*)&header[22];
+        int height = abs(*(int*)&header[22]);
 
         // Transform
         // transformPxChVal(1,255,0,dout); // Set channel 1 (green) to 0
@@ -90,7 +95,7 @@ int main(int argc, char** argv)
 
             chrono::steady_clock::time_point ccl_begin = chrono::steady_clock::now();
 
-            descriptors = ccl(channel, 5, width, height, dout, false);
+            descriptors = ccl(channel, fg_th, width, height, dout, false);
 
             chrono::steady_clock::time_point ccl_end = chrono::steady_clock::now();
 
@@ -100,17 +105,17 @@ int main(int argc, char** argv)
 
             chrono::steady_clock::time_point centroid_begin = chrono::steady_clock::now();
 
-            centroid(channel, width, height, descriptors, dout);
+            centroid(channel, feature_th, width, height, descriptors, dout);
 
             chrono::steady_clock::time_point centroid_end = chrono::steady_clock::now();
 
             cout << endl;
-            cout << "   centroid finished in: " << chrono::duration_cast<std::chrono::milliseconds>(centroid_end - centroid_begin).count() << "[ms]" << endl;
+            cout << "   centroid finished in: " << chrono::duration_cast<std::chrono::microseconds>(centroid_end - centroid_begin).count() << "[us]" << endl;
             cout << endl;
-            // gradientFilter(channel, threshold, width,height,dout);
+            // gradientFilter(channel, fg_th, width,height,dout);
+
 
         }
-
         cout << endl;
         cout << " ---- OUTPUT INFO -------" << endl;
         cout << endl;
@@ -124,6 +129,7 @@ int main(int argc, char** argv)
         chrono::steady_clock::time_point finish = chrono::steady_clock::now();
         cout << "   Total: " << chrono::duration_cast<std::chrono::milliseconds>(finish - start).count() << "[ms]" << endl;
         cout << endl;
+
     }
 
     return 0;
