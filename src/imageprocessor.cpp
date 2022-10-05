@@ -438,7 +438,6 @@ feature_descriptors ccl(unsigned int channel, unsigned int threshold, unsigned i
     descriptors.featureCoordinates = featureCoordinates;
     descriptors.featureBrightness = featureBrightness;
 
-    cout << endl << "   " << (int) lb << " features found" << endl;
     return descriptors;
 }
 

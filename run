@@ -1,0 +1,127 @@
+# Prepare by clearing old logs
+# rm outputs/logs/*
+echo "RUN 1"
+# Run 1
+# batch 1
+echo "batch 1"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 50 -feature_th 300 > ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 800 > ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 30 -feature_th 800 > ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 50 > ./outputs/logs/s2.log
+# batch 2
+echo "batch 2"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 50 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 800 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 30 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 50 >> ./outputs/logs/s2.log
+# batch 3
+echo "batch 3"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 50 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 800 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 30 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 50 >> ./outputs/logs/s2.log
+# batch 4
+echo "batch 4"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 50 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 800 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 30 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 50 >> ./outputs/logs/s2.log
+# batch 5
+echo "batch 5"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 50 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 800 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 30 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 50 >> ./outputs/logs/s2.log
+# batch 6
+echo "batch 6"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 50 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 800 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 30 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 50 >> ./outputs/logs/s2.log
+# batch 7
+echo "batch 7"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 50 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 800 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 30 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 50 >> ./outputs/logs/s2.log
+# batch 8
+echo "batch 8"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 50 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 800 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 30 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 50 >> ./outputs/logs/s2.log
+# batch 9
+echo "batch 9"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 50 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 800 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 30 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 50 >> ./outputs/logs/s2.log
+# batch 10
+echo "batch 10"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 50 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 800 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 30 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 50 >> ./outputs/logs/s2.log
+
+echo "RUN 2"
+# Run 2
+# batch 1
+echo "batch 1"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 100 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 400 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 40 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 100 >> ./outputs/logs/s2.log
+# batch 2
+echo "batch 2"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 100 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 400 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 40 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 100 >> ./outputs/logs/s2.log
+# batch 3
+echo "batch 3"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 100 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 400 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 40 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 100 >> ./outputs/logs/s2.log
+# batch 4
+echo "batch 4"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 100 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 400 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 40 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 100 >> ./outputs/logs/s2.log
+# batch 5
+echo "batch 5"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 100 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 400 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 40 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 100 >> ./outputs/logs/s2.log
+# batch 6
+echo "batch 6"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 100 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 400 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 40 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 100 >> ./outputs/logs/s2.log
+# batch 7
+echo "batch 7"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 100 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 400 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 40 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 100 >> ./outputs/logs/s2.log
+# batch 8
+echo "batch 8"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 100 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 400 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 40 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 100 >> ./outputs/logs/s2.log
+# batch 9
+echo "batch 9"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 100 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 400 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 40 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 100 >> ./outputs/logs/s2.log
+# batch 10
+echo "batch 10"
+./main.o -b -f inputs/ds1/test.bmp -foreground_th 100 -feature_th 300 >> ./outputs/logs/test.log
+./main.o -b -f inputs/ds1/s0.bmp -foreground_th 50 -feature_th 400 >> ./outputs/logs/s0.log
+./main.o -b -f inputs/ds1/s1.bmp -foreground_th 40 -feature_th 800 >> ./outputs/logs/s1.log
+./main.o -b -f inputs/ds1/s2.bmp -foreground_th 15 -feature_th 100 >> ./outputs/logs/s2.log

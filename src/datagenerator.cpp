@@ -79,7 +79,11 @@ void generateVesselData(unsigned int nrOfSamples, int sampleWidth, int sampleHei
 
         for(int y = 0; y < sampleHeight; y++) {
             for(int x = 0; x < sampleWidth; x++) {
-
+                if(x >= length_x1 && x <= length_x2 && y >= hull_x1 && y <= hull_x2) {
+                    data[(y*sampleWidth) + x][0] = 255;
+                    data[(y*sampleWidth) + x][1] = 255;
+                    data[(y*sampleWidth) + x][2] = 255;
+                }
             }
         }
 
