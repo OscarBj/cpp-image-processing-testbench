@@ -65,6 +65,9 @@ Parameters:
 
     Location of input file. Default = test_in.bmp
 
+**-vd** : Generate vessel data
+
+    Creates a random vessel shape in a bmp file
 
 ## CCL Operation Mode
 ### features[label] -> feature_id

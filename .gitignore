@@ -33,3 +33,6 @@
 
 # Output files
 outputs/*
+
+# MacOs
+.DS_Store
