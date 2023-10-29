@@ -114,9 +114,9 @@ void writeBMP(char *outp_filename, int width, int height, unsigned char *header,
     int row_padded = (width*3 + 3) & (~3);
 
     int widthInBytes = width * 8;
-    int fileSize = 54 + (row_padded * height);
+    int fileSize = BMP_HEADER_SIZE + (row_padded * height);
 
-    fwrite(header, 1, 54, imageFile);
+    fwrite(header, 1, BMP_HEADER_SIZE, imageFile);
 
     unsigned char tmp[3] = { '0' };
 
@@ -134,4 +134,41 @@ void writeBMP(char *outp_filename, int width, int height, unsigned char *header,
     }
 
     fclose(imageFile);
+}
+
+unsigned char *generateBMPHeader(TypeDescriptorConstraints constraints) {
+    int widthInBytes = constraints.frameWidth * 3;
+    int paddingSize = (4 - (widthInBytes) % 4) % 4;
+    int stride = (widthInBytes) + paddingSize;
+
+    int fileSize = BMP_HEADER_SIZE + constraints.frameHeight * stride;
+
+    vector<vector<uint8_t>> data(constraints.frameWidth * constraints.frameHeight, {0, 0, 0});
+
+    unsigned char *header;
+    header = new unsigned char[BMP_HEADER_SIZE];
+
+    // Hardcoded file header for 24-bit 200x200 bmp image.
+    header[0] = (unsigned char)('B');
+    header[1] = (unsigned char)('M');
+
+    header[2] = (unsigned char)(fileSize);
+    header[3] = (unsigned char)(fileSize >> 8);
+    header[4] = (unsigned char)(fileSize >> 16);
+    header[5] = (unsigned char)(fileSize >> 24);
+
+    header[6] = (unsigned char)(0);
+    header[7] = (unsigned char)(0);
+    header[8] = (unsigned char)(0);
+    header[9] = (unsigned char)(0);
+
+    header[10] = (unsigned char)(54);
+    header[14] = (unsigned char)(40);
+
+    header[18] = (unsigned char)(constraints.frameWidth);  // 0xc8
+    header[22] = (unsigned char)(constraints.frameHeight); // 0xc8
+    header[26] = (unsigned char)(1);
+    header[28] = (unsigned char)(0x18); // Bits per pixel - 24
+
+    return header;
 }
